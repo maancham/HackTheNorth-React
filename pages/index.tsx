@@ -174,24 +174,7 @@ export default function Chat(props: { apiKeyApp: string }) {
   }, [account]);
 
   const handleConnect = async () => {
-    // if (window.ethereum) {
-    //   try {
-    //   const accounts = await window.ethereum.request({
-    //     method: 'eth_requestAccounts',
-    //   });
-    //   const account = accounts[0];
-    //   console.log('Connected', account);
-    //   } catch (err) {
-    //     console.log("User denied account access:", err);
-    //   }
-    // }
-    // else if (window.web3) {
-    //   const web3 = new Web3(window.web3.currentProvider);
-    //   console.log("Legacy dapp browser detected!");
-    // }
-    // else {
-    //   console.log('Non-Ethereum browser detected. Consider installing MetaMask!');
-    // }
+
     setError("");
     if (checkEthereumExists()) {
       try {
@@ -213,25 +196,6 @@ export default function Chat(props: { apiKeyApp: string }) {
   }
 
 
-
-  // -------------- Copy Response --------------
-  // const copyToClipboard = (text: string) => {
-  //   const el = document.createElement('textarea');
-  //   el.value = text;
-  //   document.body.appendChild(el);
-  //   el.select();
-  //   document.execCommand('copy');
-  //   document.body.removeChild(el);
-  // };
-
-  // *** Initializing apiKey with .env.local value
-  // useEffect(() => {
-  // ENV file verison
-  // const apiKeyENV = process.env.NEXT_PUBLIC_OPENAI_API_KEY
-  // if (apiKey === undefined || null) {
-  //   setApiKey(apiKeyENV)
-  // }
-  // }, [])
 
   const handleChange = (Event: any) => {
     setInputCode(Event.target.value);
