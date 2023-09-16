@@ -1,7 +1,10 @@
-export type OpenAIModel = 'gpt-3.5-turbo' | 'gpt-4';
+export type OpenAIModel = 'cohere' | 'openai';
+
+export interface Message {
+  content: string;
+  role: 'user' | 'assistant';
+}
 
 export interface ChatBody {
-  inputCode: string;
-  model: OpenAIModel;
-  apiKey?: string | undefined;
+  messages: Message[];
 }

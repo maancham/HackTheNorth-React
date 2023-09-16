@@ -23,17 +23,19 @@ import {
 import { useEffect, useState } from 'react';
 import { MdAutoAwesome, MdBolt, MdEdit, MdPerson } from 'react-icons/md';
 import Bg from '../public/img/chat/bg-image.png';
+import Web3 from 'web3';
 
 export default function Chat(props: { apiKeyApp: string }) {
+  const services: OpenAIModel[] = ["cohere", "openai"];
   // *** If you use .env.local variable for your API key, method which we recommend, use the apiKey variable commented below
   const { apiKeyApp } = props;
   // Input States
   const [inputOnSubmit, setInputOnSubmit] = useState<string>('');
   const [inputCode, setInputCode] = useState<string>('');
   // Response message
-  const [outputCode, setOutputCode] = useState<string>('');
+  const [outputCodes, setOutputCodes] = useState<{message: string, isInput: boolean}[]>([]);
   // ChatGPT model
-  const [model, setModel] = useState<OpenAIModel>('gpt-3.5-turbo');
+  const [model, setModel] = useState<OpenAIModel>(services[0]);
   // Loading state
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -59,16 +61,10 @@ export default function Chat(props: { apiKeyApp: string }) {
     { color: 'whiteAlpha.600' },
   );
   const handleTranslate = async () => {
-    const apiKey = apiKeyApp;
     setInputOnSubmit(inputCode);
 
     // Chat post conditions(maximum number of characters, valid message etc.)
-    const maxCodeLength = model === 'gpt-3.5-turbo' ? 700 : 700;
-
-    if (!apiKeyApp?.includes('sk-') && !apiKey?.includes('sk-')) {
-      alert('Please enter an API key.');
-      return;
-    }
+    const maxCodeLength = model === 'cohere' ? 700 : 700;
 
     if (!inputCode) {
       alert('Please enter your message.');
@@ -81,22 +77,20 @@ export default function Chat(props: { apiKeyApp: string }) {
       );
       return;
     }
-    setOutputCode(' ');
     setLoading(true);
     const controller = new AbortController();
     const body: ChatBody = {
-      inputCode,
-      model,
-      apiKey,
+      messages: [{content: inputCode, role: 'user'}],
     };
+    setOutputCodes((prev) => [...prev, {message: inputCode, isInput: true}]);
+
 
     // -------------- Fetch --------------
-    const response = await fetch('/api/chatAPI', {
+    const response = await fetch(`${currentUrl}/${model}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      signal: controller.signal,
       body: JSON.stringify(body),
     });
 
@@ -104,13 +98,13 @@ export default function Chat(props: { apiKeyApp: string }) {
       setLoading(false);
       if (response) {
         alert(
-          'Something went wrong went fetching from the API. Make sure to use a valid API key.',
+          'Something went wrong went fetching from the API.',
         );
       }
       return;
     }
 
-    const data = response.body;
+    const data = await response.json();
 
     if (!data) {
       setLoading(false);
@@ -118,17 +112,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       return;
     }
 
-    const reader = data.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-
-    while (!done) {
-      setLoading(true);
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      const chunkValue = decoder.decode(value);
-      setOutputCode((prevCode) => prevCode + chunkValue);
-    }
+    setOutputCodes((prev) => [...prev, {message: data.data, isInput: false}]);
 
     setLoading(false);
   };
@@ -174,7 +158,6 @@ export default function Chat(props: { apiKeyApp: string }) {
   }, [account]);
 
   const handleConnect = async () => {
-
     setError("");
     if (checkEthereumExists()) {
       try {
@@ -195,7 +178,158 @@ export default function Chat(props: { apiKeyApp: string }) {
     }
   }
 
+  const web3 = new Web3('https://sepolia.infura.io/v3/6470eff63ad7429e88bab4a2e92a16ea');
+  const abi = [
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "initialUrls",
+          "type": "string[]"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "appendedUrl",
+          "type": "string"
+        }
+      ],
+      "name": "UrlAppended",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "url",
+          "type": "string"
+        }
+      ],
+      "name": "UrlEmitted",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "newUrl",
+          "type": "string"
+        }
+      ],
+      "name": "appendUrl",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentIndex",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "emitNextNode",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "urls",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+  const contractAddress = '0x6dDe9aa8a5eD5230b5D62bfA37467fBd6679b241'; 
+  const [currentUrl, setCurrentUrl] = useState("")
 
+  const contract = new web3.eth.Contract(abi, contractAddress);
+
+  const emitNextNode = async () => {
+    const gas = await contract.methods.emitNextNode().estimateGas({ from: account });
+    await contract.methods.emitNextNode().send({ from: account, gas: gas });
+  };
+
+  const readData = async () => {
+    const index = await contract.methods.currentIndex().call();
+    const url = await contract.methods.urls(index).call();
+    setCurrentUrl(url);
+  };
+
+  useEffect(() => {
+    readData()
+      .then(() => {
+        return emitNextNode();
+      })
+      .then(() => {
+        return readData();
+      })
+      .catch((error) => {
+        console.error("An error occurred:", error);
+      });
+  }, []);
+
+
+  // -------------- Copy Response --------------
+  // const copyToClipboard = (text: string) => {
+  //   const el = document.createElement('textarea');
+  //   el.value = text;
+  //   document.body.appendChild(el);
+  //   el.select();
+  //   document.execCommand('copy');
+  //   document.body.removeChild(el);
+  // };
+
+  // *** Initializing apiKey with .env.local value
+  // useEffect(() => {
+  // ENV file verison
+  // const apiKeyENV = process.env.NEXT_PUBLIC_OPENAI_API_KEY
+  // if (apiKey === undefined || null) {
+  //   setApiKey(apiKeyENV)
+  // }
+  // }, [])
 
   const handleChange = (Event: any) => {
     setInputCode(Event.target.value);
@@ -226,7 +360,7 @@ export default function Chat(props: { apiKeyApp: string }) {
         pb={{ base: '60px'}}
       >
         {/* Model Change */}
-        <Flex direction={'column'} w="100%" mb={outputCode ? '20px' : 'auto'}>
+        <Flex direction={'column'} w="100%" mb={outputCodes.length > 0 ? '20px' : 'auto'}>
           <Flex
             mx="auto"
             zIndex="2"
@@ -239,15 +373,15 @@ export default function Chat(props: { apiKeyApp: string }) {
               transition="0.3s"
               justify={'center'}
               align="center"
-              bg={model === 'gpt-3.5-turbo' ? buttonBg : 'transparent'}
+              bg={model === 'cohere' ? buttonBg : 'transparent'}
               w="174px"
               h="70px"
-              boxShadow={model === 'gpt-3.5-turbo' ? buttonShadow : 'none'}
+              boxShadow={model === 'cohere' ? buttonShadow : 'none'}
               borderRadius="14px"
               color={textColor}
               fontSize="18px"
               fontWeight={'700'}
-              onClick={() => setModel('gpt-3.5-turbo')}
+              onClick={() => setModel('cohere')}
             >
               <Flex
                 borderRadius="full"
@@ -265,22 +399,22 @@ export default function Chat(props: { apiKeyApp: string }) {
                   color={iconColor}
                 />
               </Flex>
-              Public
+              Cohere
             </Flex>
             <Flex
               cursor={'pointer'}
               transition="0.3s"
               justify={'center'}
               align="center"
-              bg={model === 'gpt-4' ? buttonBg : 'transparent'}
+              bg={model === 'openai' ? buttonBg : 'transparent'}
               w="164px"
               h="70px"
-              boxShadow={model === 'gpt-4' ? buttonShadow : 'none'}
+              boxShadow={model === 'openai' ? buttonShadow : 'none'}
               borderRadius="14px"
               color={textColor}
               fontSize="18px"
               fontWeight={'700'}
-              onClick={() => setModel('gpt-4')}
+              onClick={() => setModel('openai')}
             >
               <Flex
                 borderRadius="full"
@@ -298,7 +432,7 @@ export default function Chat(props: { apiKeyApp: string }) {
                   color={iconColor}
                 />
               </Flex>
-              Private
+              OpenAI
             </Flex>
             <Flex
             justifySelf={'flex-end'}
@@ -333,81 +467,80 @@ export default function Chat(props: { apiKeyApp: string }) {
           </Flex>
 
         </Flex>
-        {/* Main Box */}
+        {/* Main Box */}        
         <Flex
           direction="column"
           w="100%"
           mx="auto"
-          display={outputCode ? 'flex' : 'none'}
+          display={outputCodes.length > 0 ? 'flex' : 'none'}
           mb={'auto'}
         >
-          <Flex w="100%" align={'center'} mb="10px">
-            <Flex
-              borderRadius="full"
-              justify="center"
-              align="center"
-              bg={'transparent'}
-              border="1px solid"
-              borderColor={borderColor}
-              me="20px"
-              h="40px"
-              minH="40px"
-              minW="40px"
-            >
-              <Icon
-                as={MdPerson}
-                width="20px"
-                height="20px"
-                color={brandColor}
-              />
-            </Flex>
-            <Flex
-              p="22px"
-              border="1px solid"
-              borderColor={borderColor}
-              borderRadius="14px"
-              w="100%"
-              zIndex={'2'}
-            >
-              <Text
-                color={textColor}
-                fontWeight="600"
-                fontSize={{ base: 'sm', md: 'md' }}
-                lineHeight={{ base: '24px', md: '26px' }}
+          {outputCodes.map((outputCode) => 
+          outputCode.isInput ?
+            <Flex w="100%" align={'center'} mb="10px">
+             
+              <Flex
+                p="22px"
+                border="1px solid"
+                borderColor={borderColor}
+                borderRadius="14px"
+                w="100%"
+                zIndex={'2'}
               >
-                {inputOnSubmit}
-              </Text>
-              <Icon
-                cursor="pointer"
-                as={MdEdit}
-                ms="auto"
-                width="20px"
-                height="20px"
-                color={gray}
-              />
+                <Text
+                  color={textColor}
+                  fontWeight="600"
+                  fontSize={{ base: 'sm', md: 'md' }}
+                  lineHeight={{ base: '24px', md: '26px' }}
+                >
+                  {outputCode.message}
+                </Text>
+              </Flex>
+
+              <Flex
+                borderRadius="full"
+                justify="center"
+                align="center"
+                bg={'transparent'}
+                border="1px solid"
+                borderColor={borderColor}
+                ms="20px"
+                h="40px"
+                minH="40px"
+                minW="40px"
+              >
+                <Icon
+                  as={MdPerson}
+                  width="20px"
+                  height="20px"
+                  color={brandColor}
+                />
+              </Flex>
             </Flex>
-          </Flex>
-          <Flex w="100%">
-            <Flex
-              borderRadius="full"
-              justify="center"
-              align="center"
-              bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'}
-              me="20px"
-              h="40px"
-              minH="40px"
-              minW="40px"
-            >
-              <Icon
-                as={MdAutoAwesome}
-                width="20px"
-                height="20px"
-                color="white"
-              />
+            :
+            <Flex w="100%" mb="10px">
+              <Flex
+                borderRadius="full"
+                justify="center"
+                align="center"
+                bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'}
+                me="20px"
+                h="40px"
+                minH="40px"
+                minW="40px"
+              >
+                <Icon
+                  as={MdAutoAwesome}
+                  width="20px"
+                  height="20px"
+                  color="white"
+                />
+              </Flex>
+              <MessageBoxChat output={outputCode.message} />
             </Flex>
-            <MessageBoxChat output={outputCode} />
-          </Flex>
+          )}
         </Flex>
+
         {/* Chat Input */}
         <Flex
           ms={{ base: '0px', xl: '60px' }}
