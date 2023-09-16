@@ -26,14 +26,16 @@ import Bg from '../public/img/chat/bg-image.png';
 import Web3 from 'web3';
 
 export default function Chat(props: { apiKeyApp: string }) {
-  const services: OpenAIModel[] = ["cohere", "openai"];
+  const services: OpenAIModel[] = ['cohere', 'openai'];
   // *** If you use .env.local variable for your API key, method which we recommend, use the apiKey variable commented below
   const { apiKeyApp } = props;
   // Input States
   const [inputOnSubmit, setInputOnSubmit] = useState<string>('');
   const [inputCode, setInputCode] = useState<string>('');
   // Response message
-  const [outputCodes, setOutputCodes] = useState<{message: string, isInput: boolean}[]>([]);
+  const [outputCodes, setOutputCodes] = useState<
+    { message: string; isInput: boolean }[]
+  >([]);
   // ChatGPT model
   const [model, setModel] = useState<OpenAIModel>(services[0]);
   // Loading state
@@ -80,10 +82,9 @@ export default function Chat(props: { apiKeyApp: string }) {
     setLoading(true);
     const controller = new AbortController();
     const body: ChatBody = {
-      messages: [{content: inputCode, role: 'user'}],
+      messages: [{ content: inputCode, role: 'user' }],
     };
-    setOutputCodes((prev) => [...prev, {message: inputCode, isInput: true}]);
-
+    setOutputCodes((prev) => [...prev, { message: inputCode, isInput: true }]);
 
     // -------------- Fetch --------------
     const response = await fetch(`${currentUrl}/${model}`, {
@@ -97,9 +98,7 @@ export default function Chat(props: { apiKeyApp: string }) {
     if (!response.ok) {
       setLoading(false);
       if (response) {
-        alert(
-          'Something went wrong went fetching from the API.',
-        );
+        alert('Something went wrong went fetching from the API.');
       }
       return;
     }
@@ -112,31 +111,31 @@ export default function Chat(props: { apiKeyApp: string }) {
       return;
     }
 
-    setOutputCodes((prev) => [...prev, {message: data.data, isInput: false}]);
+    setOutputCodes((prev) => [...prev, { message: data.data, isInput: false }]);
 
     setLoading(false);
   };
 
-  const [account, setAccount] = useState("");
-  const [publicKey, setPublicKey] = useState("");
-  const[currentUrl, setCurrentUrl] = useState("")
-  const [error, setError] = useState("");
-  const { ethereum }: any = typeof window !== "undefined" ? window : {};
+  const [account, setAccount] = useState('');
+  const [publicKey, setPublicKey] = useState('');
+  const [currentUrl, setCurrentUrl] = useState('');
+  const [error, setError] = useState('');
+  const { ethereum }: any = typeof window !== 'undefined' ? window : {};
   const checkEthereumExists = () => {
     if (!ethereum) {
-      setError("Please Install MetaMask.");
+      setError('Please Install MetaMask.');
       return false;
     }
     return true;
   };
 
   const getConnectedAccounts = async () => {
-    setError("");
+    setError('');
     try {
       const accounts = await ethereum.request({
-        method: "eth_accounts",
+        method: 'eth_accounts',
       });
-      console.log('unknown',accounts);
+      console.log('unknown', accounts);
       setAccount(accounts[0]);
     } catch (err: any) {
       setError(err.message);
@@ -145,206 +144,213 @@ export default function Chat(props: { apiKeyApp: string }) {
 
   useEffect(() => {
     if (checkEthereumExists()) {
-      ethereum.on("accountsChanged", getConnectedAccounts);
+      ethereum.on('accountsChanged', getConnectedAccounts);
       getConnectedAccounts();
     }
     return () => {
       if (checkEthereumExists()) {
-        ethereum.removeListener("accountsChanged", getConnectedAccounts);
+        ethereum.removeListener('accountsChanged', getConnectedAccounts);
       }
     };
   }, []);
 
   useEffect(() => {
     // Update the publicKey when the account changes
-    setPublicKey(account || "");
+    setPublicKey(account || '');
   }, [account]);
 
   const handleConnect = async () => {
-    setError("");
+    setError('');
     if (checkEthereumExists()) {
       try {
         if (account) {
-          setAccount("");
+          setAccount('');
         } else {
           const accounts = await ethereum.request({
-            method: "eth_requestAccounts",
+            method: 'eth_requestAccounts',
           });
-          console.log('connected accounts',accounts);
+          console.log('connected accounts', accounts);
           setAccount(accounts[0]);
         }
       } catch (err: any) {
         setError(err.message);
       }
     }
-  }
+  };
 
-  const web3 = new Web3('https://sepolia.infura.io/v3/6470eff63ad7429e88bab4a2e92a16ea');
+  const web3 = new Web3(
+    'https://sepolia.infura.io/v3/6470eff63ad7429e88bab4a2e92a16ea',
+  );
   const abi = [
     {
-      "inputs": [
+      inputs: [
         {
-          "internalType": "string[]",
-          "name": "initialUrls",
-          "type": "string[]"
-        }
+          internalType: 'string[]',
+          name: 'initialUrls',
+          type: 'string[]',
+        },
       ],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
+      stateMutability: 'nonpayable',
+      type: 'constructor',
     },
     {
-      "anonymous": false,
-      "inputs": [
+      anonymous: false,
+      inputs: [
         {
-          "indexed": true,
-          "internalType": "address",
-          "name": "sender",
-          "type": "address"
+          indexed: true,
+          internalType: 'address',
+          name: 'sender',
+          type: 'address',
         },
         {
-          "indexed": false,
-          "internalType": "string",
-          "name": "appendedUrl",
-          "type": "string"
-        }
+          indexed: false,
+          internalType: 'string',
+          name: 'appendedUrl',
+          type: 'string',
+        },
       ],
-      "name": "UrlAppended",
-      "type": "event"
+      name: 'UrlAppended',
+      type: 'event',
     },
     {
-      "anonymous": false,
-      "inputs": [
+      anonymous: false,
+      inputs: [
         {
-          "indexed": true,
-          "internalType": "address",
-          "name": "sender",
-          "type": "address"
+          indexed: true,
+          internalType: 'address',
+          name: 'sender',
+          type: 'address',
         },
         {
-          "indexed": false,
-          "internalType": "string",
-          "name": "url",
-          "type": "string"
-        }
+          indexed: false,
+          internalType: 'string',
+          name: 'url',
+          type: 'string',
+        },
       ],
-      "name": "UrlEmitted",
-      "type": "event"
+      name: 'UrlEmitted',
+      type: 'event',
     },
     {
-      "anonymous": false,
-      "inputs": [
+      anonymous: false,
+      inputs: [
         {
-          "indexed": false,
-          "internalType": "string",
-          "name": "url",
-          "type": "string"
-        }
+          indexed: false,
+          internalType: 'string',
+          name: 'url',
+          type: 'string',
+        },
       ],
-      "name": "UrlListEmitted",
-      "type": "event"
+      name: 'UrlListEmitted',
+      type: 'event',
     },
     {
-      "inputs": [
+      inputs: [
         {
-          "internalType": "string",
-          "name": "newUrl",
-          "type": "string"
-        }
+          internalType: 'string',
+          name: 'newUrl',
+          type: 'string',
+        },
       ],
-      "name": "appendUrl",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
+      name: 'appendUrl',
+      outputs: [],
+      stateMutability: 'nonpayable',
+      type: 'function',
     },
     {
-      "inputs": [],
-      "name": "currentIndex",
-      "outputs": [
+      inputs: [],
+      name: 'currentIndex',
+      outputs: [
         {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
+          internalType: 'uint256',
+          name: '',
+          type: 'uint256',
+        },
       ],
-      "stateMutability": "view",
-      "type": "function"
+      stateMutability: 'view',
+      type: 'function',
     },
     {
-      "inputs": [],
-      "name": "emitAllUrls",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
+      inputs: [],
+      name: 'emitAllUrls',
+      outputs: [],
+      stateMutability: 'nonpayable',
+      type: 'function',
     },
     {
-      "inputs": [],
-      "name": "emitNextNode",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
+      inputs: [],
+      name: 'emitNextNode',
+      outputs: [],
+      stateMutability: 'nonpayable',
+      type: 'function',
     },
     {
-      "inputs": [
+      inputs: [
         {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
+          internalType: 'uint256',
+          name: '',
+          type: 'uint256',
+        },
       ],
-      "name": "urls",
-      "outputs": [
+      name: 'urls',
+      outputs: [
         {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
+          internalType: 'string',
+          name: '',
+          type: 'string',
+        },
       ],
-      "stateMutability": "view",
-      "type": "function"
-    }
+      stateMutability: 'view',
+      type: 'function',
+    },
   ];
-  const contractAddress = '0xaa39fbCBd0899c9445770361051Db602C55AABA8'; 
-
+  const contractAddress = '0xaa39fbCBd0899c9445770361051Db602C55AABA8';
 
   const contract = new web3.eth.Contract(abi, contractAddress);
 
   async function emitNextNode() {
     const web3 = new Web3((window as any).ethereum);
-    const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await (window as any).ethereum.request({
+      method: 'eth_requestAccounts',
+    });
     const account = accounts[0];
     const contract = new web3.eth.Contract(abi, contractAddress);
 
     try {
-      console.log('temp',account)
-        const gas = await contract.methods.emitNextNode().estimateGas({ from: account });
-        const txReceipt = await contract.methods.emitNextNode().send({ from: account, gas: gas as any });
-        console.log(`Transaction hash: ${txReceipt.transactionHash}`);
+      console.log('temp', account);
+      const gas = await contract.methods
+        .emitNextNode()
+        .estimateGas({ from: account });
+      const txReceipt = await contract.methods
+        .emitNextNode()
+        .send({ from: account, gas: gas as any });
+      console.log(`Transaction hash: ${txReceipt.transactionHash}`);
     } catch (error) {
-        console.error(error);
+      console.error(error);
     }
-}
-
+  }
 
   const readData = async () => {
-    const eventName = 'UrlListEmitted'; // Replace with your event name
-    const filterOptions = {}; // You can add additional filters here if needed
+    const eventName = 'UrlListEmitted';
+    const filterOptions = {};
 
-    contract.getPastEvents(eventName as any, {
-      filter: filterOptions,
-      fromBlock: 0,
-      toBlock: 'latest',
-    })
-      .then(events => {
+    contract
+      .getPastEvents(eventName as any, {
+        filter: filterOptions,
+        fromBlock: 0,
+        toBlock: 'latest',
+      })
+      .then((events) => {
         if (events.length > 0) {
           const latestEvent = events[events.length - 1];
-          console.log('Latest Event:', (latestEvent as any).returnValues); // Access event data
-          console.log((latestEvent as any).returnValues.url)
+          console.log('Latest Event:', (latestEvent as any).returnValues);
+          console.log((latestEvent as any).returnValues.url);
           setCurrentUrl((latestEvent as any).returnValues.url);
         } else {
           console.log('No events found');
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error:', error);
       });
   };
@@ -358,29 +364,9 @@ export default function Chat(props: { apiKeyApp: string }) {
         return emitNextNode();
       })
       .catch((error) => {
-        console.error("An error occurred:", error);
+        console.error('An error occurred:', error);
       });
   }, [account]);
-
-
-  // -------------- Copy Response --------------
-  // const copyToClipboard = (text: string) => {
-  //   const el = document.createElement('textarea');
-  //   el.value = text;
-  //   document.body.appendChild(el);
-  //   el.select();
-  //   document.execCommand('copy');
-  //   document.body.removeChild(el);
-  // };
-
-  // *** Initializing apiKey with .env.local value
-  // useEffect(() => {
-  // ENV file verison
-  // const apiKeyENV = process.env.NEXT_PUBLIC_OPENAI_API_KEY
-  // if (apiKey === undefined || null) {
-  //   setApiKey(apiKeyENV)
-  // }
-  // }, [])
 
   const handleChange = (Event: any) => {
     setInputCode(Event.target.value);
@@ -408,10 +394,14 @@ export default function Chat(props: { apiKeyApp: string }) {
         minH={{ base: '75vh', '2xl': '85vh' }}
         maxW="1000px"
         minHeight="100vh"
-        pb={{ base: '60px'}}
+        pb={{ base: '60px' }}
       >
         {/* Model Change */}
-        <Flex direction={'column'} w="100%" mb={outputCodes.length > 0 ? '20px' : 'auto'}>
+        <Flex
+          direction={'column'}
+          w="100%"
+          mb={outputCodes.length > 0 ? '20px' : 'auto'}
+        >
           <Flex
             mx="auto"
             zIndex="2"
@@ -485,40 +475,35 @@ export default function Chat(props: { apiKeyApp: string }) {
               </Flex>
               OpenAI
             </Flex>
-            <Flex
-            justifySelf={'flex-end'}
-            px="100px"
-            >
-            <Button
-            variant="primary"
-            py="20px"
-            px="16px"
-            fontSize="sm"
-            borderRadius="35px"
-            ms="auto"
-            w={{ base: '160px', md: '210px' }}
-            h="54px"
-            _hover={{
-              boxShadow:
-                '0px 21px 27px -10px rgba(96, 60, 255, 0.48) !important',
-              bg:
-                'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%) !important',
-              _disabled: {
-                bg: 'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)',
-              },
-            }}
-            onClick={handleConnect}
-            isLoading={loading ? true : false}
-          >
-            {account
-              ? `Disconnect Wallet (${publicKey.slice(0, 5)})`
-              : "Connect Wallet"}
-          </Button>
+            <Flex justifySelf={'flex-end'} px="100px">
+              <Button
+                variant="primary"
+                py="20px"
+                px="16px"
+                fontSize="sm"
+                borderRadius="35px"
+                ms="auto"
+                w={{ base: '160px', md: '210px' }}
+                h="54px"
+                _hover={{
+                  boxShadow:
+                    '0px 21px 27px -10px rgba(96, 60, 255, 0.48) !important',
+                  bg: 'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%) !important',
+                  _disabled: {
+                    bg: 'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)',
+                  },
+                }}
+                onClick={handleConnect}
+                isLoading={loading ? true : false}
+              >
+                {account
+                  ? `Disconnect Wallet (${publicKey.slice(0, 5)})`
+                  : 'Connect Wallet'}
+              </Button>
             </Flex>
           </Flex>
-
         </Flex>
-        {/* Main Box */}        
+        {/* Main Box */}
         <Flex
           direction="column"
           w="100%"
@@ -526,69 +511,69 @@ export default function Chat(props: { apiKeyApp: string }) {
           display={outputCodes.length > 0 ? 'flex' : 'none'}
           mb={'auto'}
         >
-          {outputCodes.map((outputCode) => 
-          outputCode.isInput ?
-            <Flex w="100%" align={'center'} mb="10px">
-             
-              <Flex
-                p="22px"
-                border="1px solid"
-                borderColor={borderColor}
-                borderRadius="14px"
-                w="100%"
-                zIndex={'2'}
-              >
-                <Text
-                  color={textColor}
-                  fontWeight="600"
-                  fontSize={{ base: 'sm', md: 'md' }}
-                  lineHeight={{ base: '24px', md: '26px' }}
+          {outputCodes.map((outputCode) =>
+            outputCode.isInput ? (
+              <Flex w="100%" align={'center'} mb="10px">
+                <Flex
+                  p="22px"
+                  border="1px solid"
+                  borderColor={borderColor}
+                  borderRadius="14px"
+                  w="100%"
+                  zIndex={'2'}
                 >
-                  {outputCode.message}
-                </Text>
-              </Flex>
+                  <Text
+                    color={textColor}
+                    fontWeight="600"
+                    fontSize={{ base: 'sm', md: 'md' }}
+                    lineHeight={{ base: '24px', md: '26px' }}
+                  >
+                    {outputCode.message}
+                  </Text>
+                </Flex>
 
-              <Flex
-                borderRadius="full"
-                justify="center"
-                align="center"
-                bg={'transparent'}
-                border="1px solid"
-                borderColor={borderColor}
-                ms="20px"
-                h="40px"
-                minH="40px"
-                minW="40px"
-              >
-                <Icon
-                  as={MdPerson}
-                  width="20px"
-                  height="20px"
-                  color={brandColor}
-                />
+                <Flex
+                  borderRadius="full"
+                  justify="center"
+                  align="center"
+                  bg={'transparent'}
+                  border="1px solid"
+                  borderColor={borderColor}
+                  ms="20px"
+                  h="40px"
+                  minH="40px"
+                  minW="40px"
+                >
+                  <Icon
+                    as={MdPerson}
+                    width="20px"
+                    height="20px"
+                    color={brandColor}
+                  />
+                </Flex>
               </Flex>
-            </Flex>
-            :
-            <Flex w="100%" mb="10px">
-              <Flex
-                borderRadius="full"
-                justify="center"
-                align="center"
-                bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'}
-                me="20px"
-                h="40px"
-                minH="40px"
-                minW="40px"
-              >
-                <Icon
-                  as={MdAutoAwesome}
-                  width="20px"
-                  height="20px"
-                  color="white"
-                />
+            ) : (
+              <Flex w="100%" mb="10px">
+                <Flex
+                  borderRadius="full"
+                  justify="center"
+                  align="center"
+                  bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'}
+                  me="20px"
+                  h="40px"
+                  minH="40px"
+                  minW="40px"
+                >
+                  <Icon
+                    as={MdAutoAwesome}
+                    width="20px"
+                    height="20px"
+                    color="white"
+                  />
+                </Flex>
+                <MessageBoxChat output={outputCode.message} />
               </Flex>
-              <MessageBoxChat output={outputCode.message} />
-            </Flex>
+            ),
           )}
         </Flex>
 
@@ -626,13 +611,12 @@ export default function Chat(props: { apiKeyApp: string }) {
             _hover={{
               boxShadow:
                 '0px 21px 27px -10px rgba(96, 60, 255, 0.48) !important',
-              bg:
-                'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%) !important',
+              bg: 'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%) !important',
               _disabled: {
                 bg: 'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)',
               },
             }}
-            onClick={ () => {
+            onClick={() => {
               handleTranslate(currentUrl);
             }}
             isLoading={loading ? true : false}
