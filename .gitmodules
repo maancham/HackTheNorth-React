@@ -1,0 +1,6 @@
+[submodule "HackTheNorth-Backend"]
+	path = HackTheNorth-Backend
+	url = https://github.com/maancham/HackTheNorth-Backend
+[submodule "HackTheNorth-Solidity"]
+	path = HackTheNorth-Solidity
+	url = https://github.com/maancham/HackTheNorth-Solidity
